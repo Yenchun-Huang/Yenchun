@@ -9,7 +9,7 @@ str.var.list <- c("subject",
                   "totalasset.ij")
 
 ui <- navbarPage(
-  title = "ebg408-data",
+  title = "ebg408-data", selected = "behavior-analysis",
   #page1-correlation ####
   tabPanel("key factors",
            headerPanel("key factors"),
@@ -45,7 +45,6 @@ ui <- navbarPage(
            ),
            mainPanel(
              tabsetPanel(
-               tabPanel("Correlation",dataTableOutput("tables")),
                tabPanel("StockPrice",
                         numericInput("price.pa",
                                      label = "cut-off point",
@@ -198,7 +197,42 @@ ui <- navbarPage(
                )
              )
              
+           )),
+  #page7-behavior-analysis####
+  tabPanel("behavior-analysis",
+           headerPanel("behavior-analysis"),
+           sidebarPanel(
+             selectInput("group.ba",
+                         label = "select group",
+                         choices = c(1:80)),
+             radioButtons("movavg.ba",
+                          label = "movavg no.",
+                          choices = list("1","2","3","4","5","6","7","8","9","10"),
+                          selected = "5",
+                          inline = TRUE)
+           ),
+           mainPanel(
+             tabsetPanel(
+               tabPanel("movavg",
+                        fluidRow(
+                          tabPanel("plot",plotlyOutput("movavg")),
+                          tabPanel("summary",tableOutput("action_type"))
+                        )),
+               tabPanel("change_point",
+                        fluidRow(
+                          splitLayout(
+                            tabPanel("p1change_point", tableOutput("p1change_point")),
+                            tabPanel("p2change_point", tableOutput("p2change_point"))
+                          ),
+                          splitLayout(
+                            tabPanel("p1action_type", tableOutput("p1action_type")),
+                            tabPanel("p2action_type", tableOutput("p2action_type"))
+                          )
+                        )
+                        )
+               
+             )
+             
            ))
-  
   
 )
