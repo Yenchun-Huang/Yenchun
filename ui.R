@@ -9,7 +9,7 @@ str.var.list <- c("subject",
                   "totalasset.ij")
 
 ui <- navbarPage(
-  title = "ebg408-data", selected = "behavior-analysis",
+  title = "ebg408-data", selected = "change point",
   #page1-correlation ####
   tabPanel("key factors",
            headerPanel("key factors"),
@@ -146,7 +146,7 @@ ui <- navbarPage(
   ),
   #page5-change-point ####
   tabPanel("change point",
-           headerPanel("Change point of StockPrice"),
+           headerPanel("Change point"),
            sidebarPanel(
              selectInput("group.price",
                          label = "select group",
@@ -166,10 +166,20 @@ ui <- navbarPage(
            ),
            mainPanel(
              tabsetPanel(
-               tabPanel("Plot", plotOutput("ChangePoint")),
-               tabPanel("Summary",tableOutput("ChangePointsum"))
+               tabPanel("behavior_plot", 
+                        fluidRow(
+                            tabPanel("p1_plot-4type", plotlyOutput("p1changepoint4")),
+                            tabPanel("p1_plot-3type", plotlyOutput("p1changepoint3")),
+                            tabPanel("p1_plot-point", plotlyOutput("p1point")),
+                            tabPanel("p2_plot-point", plotlyOutput("p2point")),
+                            tabPanel("p2_plot-4type", plotlyOutput("p2changepoint4")),
+                            tabPanel("p2_plot-3type", plotlyOutput("p2changepoint3"))
+                          )),
+               tabPanel("bcp_Plot", plotOutput("ChangePoint")),
+               tabPanel("bcp_Summary",tableOutput("ChangePointsum"))
              )
-           )),
+           )
+           ),
   #page6-behavior-tendencies####
   tabPanel("behavior-tendencies",
            headerPanel("behavior tendencies"),
@@ -218,6 +228,12 @@ ui <- navbarPage(
                           tabPanel("plot",plotlyOutput("movavg")),
                           tabPanel("summary",tableOutput("action_type"))
                         )),
+               tabPanel("mov_stock",
+                        fluidRow(
+                          tabPanel("Stock", plotlyOutput("stock")),
+                          tabPanel("mov_Stock", plotlyOutput("mov_stock"))
+                        )
+               ),
                tabPanel("change_point",
                         fluidRow(
                           splitLayout(
@@ -236,3 +252,4 @@ ui <- navbarPage(
            ))
   
 )
+
