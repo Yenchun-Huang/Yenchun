@@ -94,43 +94,29 @@ long_position <- function(data){
   lp_start <- list()
   lp_trials <- list()
   lp_slope <- list()
+  lp_ds <- list()
   for (max in 1:length(data$trials)) {
     if(data$Stock[max] == max(data$Stock)){
       max_point <- data$trials[max]
     }
   }
-  # for (i in 1:max_point){
-  #   for (j in (i+1):max_point) {
-  #     delta_stock <- max(data$Stock[i:j])-min(data$Stock[i:j])
-  #     if(delta_stock>=10){
-  #       lp_trials <- append(lp_trials, j-i)
-  #       lp_start <- append(lp_start, i)
-  #       lp_end <- append(lp_end, j)
-  #       lp_slope <- append(lp_slope, (delta_stock/(j-i)))
-  #     }else if(j-i >=10 & (delta_stock/(j-i))>=0.8){
-  #       lp_trials <- append(lp_trials, j-i)
-  #       lp_start <- append(lp_start, i)
-  #       lp_end <- append(lp_end, j)
-  #       lp_slope <- append(lp_slope, (delta_stock/(j-i)))
-  #     }
-  #   }
-  # }
   for(i in 1:max_point){
     delta_stock <- max(data$Stock[i:max_point]) - min(data$Stock[i:max_point])
-    
     if(delta_stock>=10){
       lp_trials <- append(lp_trials, max_point-i)
       lp_start <- append(lp_start, i)
       lp_slope <- append(lp_slope, (delta_stock/(max_point-i)))
+      lp_ds <- append(lp_ds, delta_stock)
       }else if(max_point-i >=10 & (delta_stock/(max_point-i))>=0.8){
         lp_trials <- append(lp_trials, max_point-i)
         lp_start <- append(lp_start, i)
         lp_slope <- append(lp_slope, (delta_stock/(max_point-i)))
+        lp_ds <- append(lp_ds, delta_stock)
       }
   }
   if(length(lp_trials)!=0){
     for (a in 1:length(lp_trials)) {
-      if(lp_slope[[a]] == max(unlist(lp_slope))){
+      if(lp_ds[[a]] == max(unlist(lp_ds))){
         start = data[lp_start[[a]],]$trials
         section_type <- data.frame(type = "NA", start = 1, end = start)
         section_type <- add_row(section_type, type = "long-position", start = start, end = max_point)
@@ -151,10 +137,10 @@ long_position <- function(data){
 long_position(data.cp)
 #mark short-position####
 short_position <- function(data){
-  sp_start <- list()
   sp_end <- list()
   sp_trials <- list()
   sp_slope <- list()
+  sp_ds <- list()
   for (max in 1:length(data$trials)) {
     if(data$Stock[max] == max(data$Stock)){
       max_point <- data$trials[max]
@@ -182,15 +168,17 @@ short_position <- function(data){
       sp_trials <- append(sp_trials, i-max_point)
       sp_end <- append(sp_end, i)
       sp_slope <- append(sp_slope, delta_stock/(i-max_point))
+      sp_ds <- append(sp_ds, delta_stock)
     }else if (i-max_point >=10 & delta_stock/(i-max_point)<= -0.8){
       sp_trials <- append(sp_trials, i-max_point)
       sp_end <- append(sp_end, i)
       sp_slope <- append(sp_slope, delta_stock/(i-max_point))
+      sp_ds <- append(sp_ds, delta_stock)
     }
   }
   if(length(sp_trials)!=0){
     for (a in 1:length(sp_trials)) {
-      if(sp_slope[[a]] == min(unlist(sp_slope))){
+      if(sp_ds[[a]] == min(unlist(sp_ds))){
         end = data[sp_end[[a]],]$trials
         section_type <- data.frame(type = "NA", start = 1, end = max_point)
         section_type <- add_row(section_type, type = "short-position", start = max_point, end = end)
