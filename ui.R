@@ -9,7 +9,7 @@ str.var.list <- c("subject",
                   "totalasset.ij")
 
 ui <- navbarPage(
-  title = "ebg408-data", selected = "change point",
+  title = "ebg408-data", selected = "cp",
   #page1-correlation ####
   tabPanel("key factors",
            headerPanel("key factors"),
@@ -146,24 +146,28 @@ ui <- navbarPage(
   ),
   #page5-change-point ####
   tabPanel("change point",
-           headerPanel("Change point"),
+           value = "cp",
+           headerPanel("change point"),
            sidebarPanel(
-             selectInput("group.price",
+             selectInput("group.cp",
                          label = "select group",
-                         choices = c(1:80)
-             ),
-             sliderInput("trials.price",
-                         label = "trial range",
-                         min = 1,
-                         max = 100,
-                         value = c(1,100)
-             ),
-             radioButtons("threshold.price",
-                          label = "Probability",
-                          choices = list("0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9"),
-                          selected = "0.5",
+                         choices = c(1:80)),
+             radioButtons("threshold.cp",
+                          label = "point-threshold",
+                          choices = c(3, 4, 5, 6, 7), 
+                          selected = 5,
                           inline = TRUE),
-           ),
+             radioButtons("threshold.small.cp",
+                          label = "point-threshold-small",
+                          choices = c(0, 1, 2), 
+                          selected = 1,
+                          inline = TRUE),
+             radioButtons("threshold.small.trials.cp",
+                          label = "point-threshold-small-trials",
+                          choices = c(5, 10, 15, 20), 
+                          selected = 15,
+                          inline = TRUE),
+             ),
            mainPanel(
              tabsetPanel(
                tabPanel("behavior_plot", 
@@ -174,9 +178,7 @@ ui <- navbarPage(
                             tabPanel("p2_plot-point", plotlyOutput("p2point")),
                             tabPanel("p2_plot-4type", plotlyOutput("p2changepoint4")),
                             tabPanel("p2_plot-3type", plotlyOutput("p2changepoint3"))
-                          )),
-               tabPanel("bcp_Plot", plotOutput("ChangePoint")),
-               tabPanel("bcp_Summary",tableOutput("ChangePointsum"))
+                          ))
              )
            )
            ),
