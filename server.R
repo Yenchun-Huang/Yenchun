@@ -511,57 +511,47 @@ server <- function(input, output) {
   })
   #5.output-change-point ####
   FindInterval <- function(list_start, list_end, string_type){
-    result.list <- list()  
+    result.list <- list() 
     interval_start = list_start[[1]] 
-    interval_end = list_start[[1]] 
-    i_interval = 1  
-    i_result = 1
-    
+    interval_end = list_start[[1]]  
+    i_interval = 1
+    i_result = 1  
     while (i_interval <= length(list_start)){
       interval_start = list_start[[i_interval]]
-      
       if (interval_start >= interval_end){
         while (list_start[[i_interval]] == interval_start){
-          interval_end = list_end[[i_interval]]
+          interval_end = list_end[[i_interval]] 
           if (i_interval == length(list_start)){
             break
           }else{
             i_interval = i_interval + 1
           }
         }
-        if (i_interval == length(list_start)){
-          result.row <- data.frame(start = ifelse(i_interval ==1, 1, result.list[[i_result-1]]$end + 1), 
-                                   end = interval_start - 1, type = "NA")
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-          result.row <- data.frame(start = interval_start, end = interval_end, type = string_type)
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-          result.row <- data.frame(start = interval_end + 1, end = 101, type = "NA")
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-        }else if (i_result == 1){
-          result.row <- data.frame(start = 1, end = interval_start-1, type = "NA")
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-          result.row <- data.frame(start = interval_start, end = interval_end, type = string_type)
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
+        if (i_result == 1){
+          result.row <- data.frame(start = 1,
+                                   end = interval_start - 1,
+                                   type = "NA")
         }else {
-          result.row <- data.frame(start = result.list[[i_result-1]]$end, end = interval_start, type = "NA")
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-          result.row <- data.frame(start = interval_start, end = interval_end, type = string_type)
-          result.list[[i_result]] <- result.row
-          i_result = i_result + 1
-          result.row <- data.frame(start = interval_end + 1, end = 101, type = "NA")
-          result.list[[i_result]] <- result.row
+          result.row <- data.frame(start = result.list[[i_result-1]]$end + 1,
+                                   end = interval_start - 1,
+                                   type = "NA")
         }
+        result.list[[i_result]] <- result.row
+        i_result = i_result + 1
+        result.row <- data.frame(start = interval_start,
+                                 end = interval_end,
+                                 type = string_type)
+        result.list[[i_result]] <- result.row
+        i_result = i_result + 1
       }else{
         i_interval = i_interval + 1
       }
-      
-      
+    }
+    if (result.list[[i_result-1]]$end < 100){
+      result.row <- data.frame(start = result.list[[i_result-1]]$end + 1,
+                               end = 100,
+                               type = "NA")
+      result.list[[i_result]] <- result.row
     }
     result.table = do.call(rbind, result.list)
     return(result.table)
@@ -771,8 +761,10 @@ server <- function(input, output) {
     while(i < mat.n) {
       ith.rowdata = mat.substract[i,]
       tmp.substr.value = MaxIndex(ith.rowdata, cp.former)[1]
+      tmp.substr.index = MaxIndex(ith.rowdata, cp.former)[2]
       tmp.first.value.of.row = mat.substract[i, cp.former]
       if(!is.na(tmp.substr.value) & abs(tmp.substr.value) >= threshold){
+        cp.former = tmp.substr.index
         record.data = TRUE
         substr.value = tmp.substr.value
         end.loop = FALSE
@@ -854,7 +846,7 @@ server <- function(input, output) {
       }
     }
     if (trial.tag[cp.latter]+1 >= (100-threshold.small.trials)){
-      result[[result.index - 1]]['end'] <- 100
+      # result[[result.index - 1]]['end'] <- 100
       
     }else if (cp.latter == 1){
       result[[result.index]] <- data.frame(start = 1,
@@ -915,8 +907,8 @@ server <- function(input, output) {
     threshold.cp = as.integer(input$threshold.cp)
     threshold.small.cp = as.integer(input$threshold.small.cp)
     threshold.small.trials.cp = as.integer(input$threshold.small.trials.cp)
-    cp.result <- cbind(player.no = player.no, ChangePointAlgorithm(player.no, threshold.cp, threshold.small.cp, threshold.small.trials.cp)) %>%
-      mutate(., stage = c(1:length(player)),
+    cp.result <- cbind(player.no = paste0("no.", player.no), ChangePointAlgorithm(player.no, threshold.cp, threshold.small.cp, threshold.small.trials.cp)) %>%
+      mutate(., stage = c(1:length(player.no)),
              trials = end - start + 1)
     return(cp.result)
   })
@@ -926,8 +918,8 @@ server <- function(input, output) {
     threshold.cp = as.integer(input$threshold.cp)
     threshold.small.cp = as.integer(input$threshold.small.cp)
     threshold.small.trials.cp = as.integer(input$threshold.small.trials.cp)
-    cp.result <- cbind(player.no = player.no, ChangePointAlgorithm(player.no, threshold.cp, threshold.small.cp, threshold.small.trials.cp)) %>%
-      mutate(., stage = c(1:length(player)),
+    cp.result <- cbind(player.no = paste0("no.", player.no), ChangePointAlgorithm(player.no, threshold.cp, threshold.small.cp, threshold.small.trials.cp)) %>%
+      mutate(., stage = c(1:length(player.no)),
              trials = end - start + 1)
     return(cp.result)
   })
@@ -987,18 +979,6 @@ server <- function(input, output) {
     }else{
       result.st <- data.frame()
     }
-    # if(length(short_position(data.cp)$type) != 0){
-    #   result.sp <- short_position(data.cp)$type %>% 
-    #     mutate(., trials = end - start, stage = c(1:length(.[1])), player.no = paste0("no.", data.cp$player.no[1]))
-    # }else{
-    #   result.sp <- data.frame()
-    # }
-    # if(length(long_position(data.cp)$type != 0)){
-    #   result.lp <- long_position(data.cp)$type %>% 
-    #     mutate(., trials = end - start, stage = c(1:length(.[1])), player.no = paste0("no.", data.cp$player.no[1]))
-    # }else{
-    #   result.lp <- data.frame()
-    # }
     result <- list(result.st, cp.data)
     g <- ggplot()
     for(i in 1:length(result)){
