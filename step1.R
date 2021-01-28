@@ -6,7 +6,7 @@ library(cowplot)
 library(DataCombine)
 #Import original data
 setwd("C:\\Users\\User\\Desktop\\ebg408\\shiny")
-filepath = "data"
+filepath = "original_data_ULB"
 filenames = list.files(path = filepath, pattern="*.csv")
 fileset <- lapply(paste0(filepath,"/",filenames), read.csv)
 #Support function####
@@ -485,19 +485,21 @@ data_cp <- function(player.no){
     data.cp <- data.frame(trials = fileset[[player.no]]$Trials,
                           Stock = fileset[[player.no]]$p1Stock, 
                           Decision = fileset[[player.no]]$p1Decision,
-                          StockPrice = fileset[[player.no]]$StockPrice)
+                          StockPrice = fileset[[player.no]]$StockPrice,
+                          Bound = fileset[[player.no]]$Bound)
   }else{
     data.cp <- data.frame(trials = fileset[[player.no]]$Trials,
                           Stock = fileset[[player.no]]$p2Stock, 
                           Decision = fileset[[player.no]]$p2Decision,
-                          StockPrice = fileset[[player.no]]$StockPrice)
+                          StockPrice = fileset[[player.no]]$StockPrice,
+                          Bound = fileset[[player.no]]$Bound)
   }
   data.cp <- data.cp %>% 
     mutate(., buy = ifelse(Decision=="buy",1,0)
            , sell = ifelse(Decision=="sell",1,0)
            , notrade = ifelse(Decision=="no trade",1,0))%>%
     mutate(., lag_Decision = lag(Decision)) %>% 
-    select(., trials, Stock,StockPrice, Decision, lag_Decision,buy,sell,notrade) %>% 
+    select(., trials, Stock,StockPrice, Decision, lag_Decision, Bound,buy,sell,notrade) %>% 
     mutate(., player.no = player.no, group.no = group.no) %>% 
     filter(., trials == c(1:100))
   return(data.cp)
@@ -576,6 +578,9 @@ bp_plot_un <- list()
 for (j in c(11:160)) {
   #先抓出之前選定的資料
   data.cp <- data_cp(j)
+  ULBdataframe <- fileset[[j]][-101,] %>% 
+    mutate(.,trials = Trials,player.no = paste0("no.", data.cp$player.no[1])) %>% 
+    select(., player.no, trials, Bound)
   #算出LP&SP區間長度並標記區間，第一個區間回合數+1
   cp.data <- ChangePointAlgorithm_1127(j) %>% 
     mutate(., trials = end - start, stage = c(1:length(ChangePointAlgorithm_1127(j)[,1])), player.no = paste0("no.", data.cp$player.no[1]))
@@ -642,16 +647,21 @@ for (j in c(11:160)) {
     scale_fill_manual(breaks = c("unchange","flat", "short-position", "long-position", "NA"),
                       values = c("#161a1d80","#fed76680", "#009fb780", "#fe4a4980", "#FFFFFF00")
     )+
-    #圖畫完之後再取0~100的區間
-    coord_cartesian(ylim = c(0, 100))+
     #設定旁邊標題的大小
     theme(legend.title = element_text(size = 10),
           legend.text = element_text(size = 10))+
+    # 標記upper&lower bound
+    geom_point(data = ULBdataframe,
+               aes(x = player.no, y = trials, shape = Bound, fill = Bound, size = 3)+
+                 scale_shape_manual(values = c(25,24)) +
+                 scale_color_manual(values = c("E7B800", "#00AFBB")))+
+    #圖畫完之後再取0~100的區間
+    coord_cartesian(ylim = c(0, 100))+
     theme_classic()+
     coord_flip()
-  
   bp_plot_un[[j]] <- g
 }
+bp_plot_un[[16]]
 #behavioral pattern plot without unchanged----
 #標示3種pattern的區段圖
 #標示同上
